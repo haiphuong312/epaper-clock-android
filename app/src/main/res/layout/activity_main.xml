@@ -10,12 +10,12 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="18dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:text="E-Paper Retro Clock &amp; Goals"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
@@ -26,23 +26,82 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:gravity="center"
-            android:text="Cài đặt Mục tiêu &amp; Châm ngôn sống hiển thị trên Màn hình khóa"
+            android:text="Tùy chỉnh sự kiện &amp; kế hoạch hiển thị trên màn hình"
             android:textColor="#888888"
             android:textSize="13sp" />
 
-        <!-- Card Câu nói hay trong ngày -->
+        <!-- 1. CÀI ĐẶT SỰ KIỆN ĐẾM NGƯỢC (THAY THẾ TẾT DƯƠNG LỊCH) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:background="#1E1E1E"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💬 CÂU NÓI TRUYỀN CẢM HỨNG HÔM NAY"
+                android:text="⏳ SỰ KIỆN ĐẾM NGƯỢC (Ô GÓC PHẢI DƯỚI)"
+                android:textColor="#EAEAE6"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tên sự kiện:"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/edtEventTitle"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="4dp"
+                android:background="#2A2A2A"
+                android:hint="Ví dụ: Tết Dương Lịch, Tết Nguyên Đán, Sinh nhật..."
+                android:paddingHorizontal="10dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#666666"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Ngày diễn ra (ngày/tháng/năm):"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/edtEventDate"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="4dp"
+                android:background="#2A2A2A"
+                android:hint="Ví dụ: 01/01/2027 hoặc 17/02/2027"
+                android:paddingHorizontal="10dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#666666"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <!-- 2. CARD CÂU NÓI TRUYỀN CẢM HỨNG -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#1E1E1E"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💬 CHÂM NGÔN TRUYỀN CẢM HỨNG"
                 android:textColor="#EAEAE6"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -51,25 +110,16 @@
                 android:id="@+id/edtQuote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:background="#2A2A2A"
-                android:gravity="top|start"
-                android:hint="Tự nhập câu nói hay của bạn..."
+                android:hint="Nhập câu nói yêu thích..."
                 android:minLines="2"
-                android:padding="10dp"
+                android:padding="8dp"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#666666"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Hoặc chọn nhanh câu nói mẫu:"
-                android:textColor="#9E9E9E"
-                android:textSize="12sp" />
-
-            <!-- Các nút bấm chọn nhanh câu nói -->
+            <!-- Nút chọn nhanh -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,9 +135,9 @@
                         android:id="@+id/btnQuote1"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="36dp"
                         android:layout_marginEnd="6dp"
-                        android:text="Kỷ luật là tự do"
+                        android:text="Làm Chủ Bản Thân"
                         android:textColor="#E0E0E0"
                         android:textSize="11sp" />
 
@@ -95,9 +145,9 @@
                         android:id="@+id/btnQuote2"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="36dp"
                         android:layout_marginEnd="6dp"
-                        android:text="Hành trình vạn dặm..."
+                        android:text="Kỷ luật là tự do"
                         android:textColor="#E0E0E0"
                         android:textSize="11sp" />
 
@@ -105,9 +155,9 @@
                         android:id="@+id/btnQuote3"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="36dp"
                         android:layout_marginEnd="6dp"
-                        android:text="Tốt hơn hôm qua 1%"
+                        android:text="Vạn dặm khởi từ một bước"
                         android:textColor="#E0E0E0"
                         android:textSize="11sp" />
 
@@ -115,8 +165,8 @@
                         android:id="@+id/btnQuote4"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:text="Tập trung vào hiện tại"
+                        android:layout_height="36dp"
+                        android:text="Tốt hơn hôm qua 1%"
                         android:textColor="#E0E0E0"
                         android:textSize="11sp" />
 
@@ -125,82 +175,116 @@
 
         </LinearLayout>
 
-        <!-- Card mục tiêu công việc -->
+        <!-- 3. MỤC TIÊU KẾ HOẠCH (CÓ CHECKBOX CHỌN MỤC HIỂN THỊ) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:background="#1E1E1E"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📌 MỤC TIÊU HÔM NAY"
+                android:text="📋 KẾ HOẠCH &amp; MỤC TIÊU (Tick chọn mục hiển thị)"
                 android:textColor="#EAEAE6"
                 android:textSize="14sp"
                 android:textStyle="bold" />
+
+            <!-- Hôm nay -->
+            <CheckBox
+                android:id="@+id/cbShowToday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:checked="true"
+                android:text="Hiển thị mục tiêu Hôm nay"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
 
             <EditText
                 android:id="@+id/edtTodayGoal"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="6dp"
+                android:layout_height="42dp"
                 android:background="#2A2A2A"
-                android:hint="Ví dụ: Tập thể dục 30p, Đọc 20 trang sách..."
-                android:paddingHorizontal="12dp"
+                android:hint="Việc hôm nay..."
+                android:paddingHorizontal="10dp"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#666666"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
-            <TextView
+            <!-- Tuần này -->
+            <CheckBox
+                android:id="@+id/cbShowWeek"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="📅 MỤC TIÊU THÁNG NÀY"
-                android:textColor="#EAEAE6"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="10dp"
+                android:checked="true"
+                android:text="Hiển thị mục tiêu Tuần này"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/edtWeekGoal"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:background="#2A2A2A"
+                android:hint="Kế hoạch tuần này..."
+                android:paddingHorizontal="10dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#666666"
+                android:textSize="13sp" />
+
+            <!-- Tháng này -->
+            <CheckBox
+                android:id="@+id/cbShowMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:checked="true"
+                android:text="Hiển thị mục tiêu Tháng này"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
 
             <EditText
                 android:id="@+id/edtMonthGoal"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="6dp"
+                android:layout_height="42dp"
                 android:background="#2A2A2A"
-                android:hint="Ví dụ: Hoàn thành khóa học, Tiết kiệm 10tr..."
-                android:paddingHorizontal="12dp"
+                android:hint="Mục tiêu tháng này..."
+                android:paddingHorizontal="10dp"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#666666"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
-            <TextView
+            <!-- Năm nay -->
+            <CheckBox
+                android:id="@+id/cbShowYear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="🎯 MỤC TIÊU NĂM NAY"
-                android:textColor="#EAEAE6"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="10dp"
+                android:checked="true"
+                android:text="Hiển thị mục tiêu Năm nay"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
 
             <EditText
                 android:id="@+id/edtYearGoal"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="6dp"
+                android:layout_height="42dp"
                 android:background="#2A2A2A"
-                android:hint="Ví dụ: Chạy bộ 500km, Mua xe mới..."
-                android:paddingHorizontal="12dp"
+                android:hint="Mục tiêu năm nay..."
+                android:paddingHorizontal="10dp"
                 android:textColor="#FFFFFF"
                 android:textColorHint="#666666"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
 
             <Button
                 android:id="@+id/btnSaveGoals"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="18dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="16dp"
                 android:backgroundTint="#4CAF50"
                 android:text="💾 Lưu &amp; Cập nhật Ngay"
                 android:textColor="#FFFFFF"
@@ -209,22 +293,22 @@
 
         </LinearLayout>
 
-        <!-- Hướng dẫn và Nút cài hình nền -->
+        <!-- Hướng dẫn & Nút cài đặt -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="14dp"
             android:background="#263238"
-            android:padding="12dp"
-            android:text="💡 Mẹo cho máy Samsung: Khi bấm nút bên dưới, màn hình xem trước của Samsung sẽ hiện 2 tùy chọn:\n• 'Màn hình khóa'\n• 'Màn hình chính và màn hình khóa'\nBạn hãy chọn 'Màn hình khóa' để chỉ áp dụng cho màn hình khóa nhé!"
+            android:padding="10dp"
+            android:text="💡 Mẹo: Khi bấm nút bên dưới, màn hình Samsung hiện lên thì chọn 'Màn hình khóa' để chỉ áp dụng cho màn hình khóa nhé!"
             android:textColor="#80CBC4"
-            android:textSize="13sp" />
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/btnSetWallpaper"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="14dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="24dp"
             android:backgroundTint="#FFFFFF"
             android:text="⚙️ Cài làm Hình nền Màn hình khóa"

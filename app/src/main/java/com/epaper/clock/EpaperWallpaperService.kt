@@ -28,7 +28,6 @@ class EpaperWallpaperService : WallpaperService() {
             override fun run() {
                 drawFrame()
                 if (isVisible) {
-                    // Cập nhật lại mỗi 1000ms (1 giây) để kim giây nhảy đều
                     handler.postDelayed(this, 1000)
                 }
             }
@@ -49,21 +48,33 @@ class EpaperWallpaperService : WallpaperService() {
             super.onCreate(surfaceHolder)
             prefs = getSharedPreferences("epaper_prefs", Context.MODE_PRIVATE)
             prefs.registerOnSharedPreferenceChangeListener(this)
-            loadGoalsFromPrefs()
+            loadDataFromPrefs()
 
             val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             registerReceiver(batteryReceiver, filter)
         }
 
-        private fun loadGoalsFromPrefs() {
-            renderer.dailyQuote = prefs.getString("daily_quote", "Hành trình vạn dặm bắt đầu từ một bước chân.") ?: ""
-            renderer.todayGoal = prefs.getString("today_goal", "Tập thể dục 30p • Đọc 20 trang sách") ?: ""
-            renderer.monthGoal = prefs.getString("month_goal", "Tiết kiệm chi tiêu • Hoàn thành dự án") ?: ""
-            renderer.yearGoal = prefs.getString("year_goal", "Chạy bộ 500km • Học kỹ năng mới") ?: ""
+        private fun loadDataFromPrefs() {
+            renderer.eventTitle = prefs.getString("event_title", "Tết Dương Lịch") ?: "Tết Dương Lịch"
+            renderer.eventDateStr = prefs.getString("event_date", "01/01/2027") ?: "01/01/2027"
+
+            renderer.dailyQuote = prefs.getString("daily_quote", "Làm Chủ Bản Thân") ?: "Làm Chủ Bản Thân"
+
+            renderer.showToday = prefs.getBoolean("show_today", true)
+            renderer.todayGoal = prefs.getString("today_goal", "Fix xong tool cookie") ?: ""
+
+            renderer.showWeek = prefs.getBoolean("show_week", true)
+            renderer.weekGoal = prefs.getString("week_goal", "Hoàn thành mục tiêu tuần") ?: ""
+
+            renderer.showMonth = prefs.getBoolean("show_month", false)
+            renderer.monthGoal = prefs.getString("month_goal", "") ?: ""
+
+            renderer.showYear = prefs.getBoolean("show_year", false)
+            renderer.yearGoal = prefs.getString("year_goal", "") ?: ""
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-            loadGoalsFromPrefs()
+            loadDataFromPrefs()
             drawFrame()
         }
 
@@ -82,7 +93,7 @@ class EpaperWallpaperService : WallpaperService() {
             super.onVisibilityChanged(visible)
             this.isVisible = visible
             if (visible) {
-                loadGoalsFromPrefs()
+                loadDataFromPrefs()
                 handler.post(drawRunnable)
             } else {
                 handler.removeCallbacks(drawRunnable)

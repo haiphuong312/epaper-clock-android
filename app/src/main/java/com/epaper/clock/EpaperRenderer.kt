@@ -51,34 +51,45 @@ class EpaperRenderer {
     }
 
     var batteryVoltage: Float = 3.9f
-    var temperature: Int = 31
 
-    var dailyQuote: String = "Hành trình vạn dặm bắt đầu từ một bước chân."
-    var todayGoal: String = "Tập thể dục 30p • Đọc 20 trang sách"
-    var monthGoal: String = "Tiết kiệm chi tiêu • Hoàn thành dự án"
-    var yearGoal: String = "Chạy bộ 500km • Học kỹ năng mới"
+    // Sự kiện tùy chỉnh
+    var eventTitle: String = "Tết Dương Lịch"
+    var eventDateStr: String = "01/01/2027"
+
+    // Câu nói hay
+    var dailyQuote: String = "Làm Chủ Bản Thân"
+
+    // Kế hoạch và hiển thị
+    var showToday: Boolean = true
+    var todayGoal: String = "Fix xong tool cookie"
+
+    var showWeek: Boolean = true
+    var weekGoal: String = "Hoàn thành mục tiêu tuần"
+
+    var showMonth: Boolean = false
+    var monthGoal: String = ""
+
+    var showYear: Boolean = false
+    var yearGoal: String = ""
 
     fun render(canvas: Canvas, width: Int, height: Int) {
-        // 1. Nền đen sâu AMOLED
         canvas.drawColor(bgBezelColor)
 
-        // 2. Khung thẻ chính E-paper Đồng hồ & Lịch
         val cardMarginH = width * 0.035f
         val cardWidth = width - (cardMarginH * 2)
-        val cardHeight = cardWidth * 0.76f
+        // Thêm 1 dòng đồng hồ số 24h nên chiều cao thẻ chính tăng nhẹ (~0.88 tỉ lệ)
+        val cardHeight = cardWidth * 0.88f
         val cardLeft = cardMarginH
-        val cardTop = height * 0.075f // Đặt gọn gàng ở 7.5% mép trên
+        val cardTop = height * 0.065f
         val cardRight = cardLeft + cardWidth
         val cardBottom = cardTop + cardHeight
 
         val cardRect = RectF(cardLeft, cardTop, cardRight, cardBottom)
         val cornerRadius = 14f
 
-        // Vẽ nền thẻ E-ink & Viền khung ngoài
         canvas.drawRoundRect(cardRect, cornerRadius, cornerRadius, cardPaint)
         canvas.drawRoundRect(cardRect, cornerRadius, cornerRadius, borderPaint)
 
-        // Viền chỉ đôi bên trong
         val innerPadding = cardWidth * 0.018f
         val innerRect = RectF(
             cardLeft + innerPadding,
@@ -88,29 +99,41 @@ class EpaperRenderer {
         )
         canvas.drawRect(innerRect, linePaint)
 
-        // Phân chia layout thẻ chính:
-        val headerHeight = cardHeight * 0.15f
-        val footerHeight = cardHeight * 0.23f
+        // Phân chia 4 phần trong Thẻ chính:
+        // 1. Header (13%)
+        // 2. Dòng Đồng hồ số 24h to rõ (15%)
+        // 3. Body: Đồng hồ kim + Lịch tháng (52%)
+        // 4. Footer 2 cột (20%)
+        val headerHeight = cardHeight * 0.13f
+        val digitalClockHeight = cardHeight * 0.15f
+        val footerHeight = cardHeight * 0.20f
+
         val headerBottom = innerRect.top + headerHeight
+        val digitalClockBottom = headerBottom + digitalClockHeight
         val footerTop = innerRect.bottom - footerHeight
 
+        // Kẻ 3 đường phân cách ngang
         canvas.drawLine(innerRect.left, headerBottom, innerRect.right, headerBottom, linePaint)
+        canvas.drawLine(innerRect.left, digitalClockBottom, innerRect.right, digitalClockBottom, linePaint)
         canvas.drawLine(innerRect.left, footerTop, innerRect.right, footerTop, linePaint)
 
         val now = Calendar.getInstance()
 
-        // VẼ PHẦN HEADER
+        // 1. HEADER (Ngày, Buổi, Thứ, Pin)
         renderHeader(canvas, innerRect.left, innerRect.top, innerRect.right, headerBottom, now)
 
-        // VẼ PHẦN BODY (Đồng hồ kim + Kim giây & Lịch tháng)
+        // 2. DÒNG ĐỒNG HỒ SỐ 24H TO RÕ (NẰM GIỮA HEADER VÀ ĐỒNG HỒ/LỊCH)
+        renderDigitalClock24h(canvas, innerRect.left, headerBottom, innerRect.right, digitalClockBottom, now)
+
+        // 3. BODY (Đồng hồ kim & Lịch tháng)
         val splitX = innerRect.left + (innerRect.width() * 0.44f)
-        renderAnalogClock(canvas, innerRect.left, headerBottom, splitX, footerTop, now)
-        renderCalendar(canvas, splitX, headerBottom, innerRect.right, footerTop, now)
+        renderAnalogClock(canvas, innerRect.left, digitalClockBottom, splitX, footerTop, now)
+        renderCalendar(canvas, splitX, digitalClockBottom, innerRect.right, footerTop, now)
 
-        // VẼ PHẦN FOOTER (3 Cột)
-        renderFooter(canvas, innerRect.left, footerTop, innerRect.right, innerRect.bottom, now)
+        // 4. FOOTER (2 CỘT: Âm Lịch & Sự kiện đếm ngược)
+        renderFooter2Columns(canvas, innerRect.left, footerTop, innerRect.right, innerRect.bottom, now)
 
-        // 3. VẼ THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG PHÍA DƯỚI
+        // 5. THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG (Chỉ vẽ những mục được chọn)
         renderGoalAndQuoteCard(canvas, cardLeft, cardBottom + 16f, cardRight, now)
     }
 
@@ -125,13 +148,11 @@ class EpaperRenderer {
         val centerY = (top + bottom) / 2f
         val textSize = (bottom - top) * 0.46f
 
-        // Ngày dd/MM/yyyy
         inkPaint.textAlign = Paint.Align.LEFT
         inkPaint.textSize = textSize
         val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(cal.time)
-        canvas.drawText(dateStr, left + 18f, centerY + (textSize * 0.35f), inkPaint)
+        canvas.drawText(dateStr, left + 16f, centerY + (textSize * 0.35f), inkPaint)
 
-        // Buổi: Sáng / Trưa / Chiều / Tối
         val hour = cal.get(Calendar.HOUR_OF_DAY)
         val periodStr = when (hour) {
             in 4..10 -> "Sáng"
@@ -144,7 +165,6 @@ class EpaperRenderer {
         val periodX = left + ((right - left) * 0.43f)
         canvas.drawText(periodStr, periodX, centerY + (textSize * 0.32f), textRegular)
 
-        // Thứ
         val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
         val dowStr = when (dayOfWeek) {
             Calendar.MONDAY -> "Thứ hai"
@@ -158,13 +178,12 @@ class EpaperRenderer {
         val dowX = left + ((right - left) * 0.63f)
         canvas.drawText(dowStr, dowX, centerY + (textSize * 0.32f), textRegular)
 
-        // Điện áp & icon pin
         val voltStr = String.format(Locale.US, "%.1fv", batteryVoltage)
         textRegular.textAlign = Paint.Align.RIGHT
         textRegular.textSize = textSize * 0.68f
         val batRight = right - 12f
-        val batWidth = 32f
-        val batHeight = 18f
+        val batWidth = 30f
+        val batHeight = 17f
         val batX = batRight - batWidth
         val batY = centerY - (batHeight / 2f)
 
@@ -185,6 +204,33 @@ class EpaperRenderer {
         canvas.drawRect(batX + 3f, batY + 3f, batX + (batWidth * 0.75f), batY + batHeight - 3f, fillPaint)
     }
 
+    /**
+     * DÒNG ĐỒNG HỒ KỸ THUẬT SỐ 24H TO RÕ
+     */
+    private fun renderDigitalClock24h(
+        canvas: Canvas,
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+        cal: Calendar
+    ) {
+        val centerX = (left + right) / 2f
+        val centerY = (top + bottom) / 2f
+        val rowHeight = bottom - top
+
+        val digitalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = inkColor
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textSize = rowHeight * 0.76f
+            textAlign = Paint.Align.CENTER
+        }
+
+        val time24h = SimpleDateFormat("HH : mm : ss", Locale.getDefault()).format(cal.time)
+        val baseline = centerY + (digitalPaint.textSize * 0.34f)
+        canvas.drawText(time24h, centerX, baseline, digitalPaint)
+    }
+
     private fun renderAnalogClock(
         canvas: Canvas,
         left: Float,
@@ -197,7 +243,6 @@ class EpaperRenderer {
         val cy = (top + bottom) / 2f
         val radius = ((right - left).coerceAtMost(bottom - top) / 2f) * 0.88f
 
-        // Họa tiết hoa nan hoa tỏa tròn ở tâm
         val flowerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#D4D4D0")
             strokeWidth = 1f
@@ -213,7 +258,6 @@ class EpaperRenderer {
             )
         }
 
-        // Vạch chia phút (60 vạch) và vạch giờ (12 vạch)
         val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             strokeCap = Paint.Cap.ROUND
@@ -233,7 +277,6 @@ class EpaperRenderer {
             canvas.drawLine(startX, startY, stopX, stopY, tickPaint)
         }
 
-        // Số 1 đến 12
         inkPaint.textAlign = Paint.Align.CENTER
         inkPaint.textSize = radius * 0.22f
         val numberRadius = radius * 0.72f
@@ -245,7 +288,6 @@ class EpaperRenderer {
             canvas.drawText(i.toString(), numX, numY, inkPaint)
         }
 
-        // Giờ, Phút, Giây
         val hours = cal.get(Calendar.HOUR)
         val minutes = cal.get(Calendar.MINUTE)
         val seconds = cal.get(Calendar.SECOND)
@@ -254,10 +296,10 @@ class EpaperRenderer {
         val minuteAngle = Math.toRadians((minutes * 6).toDouble())
         val secAngle = Math.toRadians((seconds * 6).toDouble())
 
-        // 1. Kim giờ
+        // Kim giờ
         val hourPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            strokeWidth = 7f
+            strokeWidth = 6.5f
             strokeCap = Paint.Cap.ROUND
         }
         val hourLen = radius * 0.52f
@@ -268,10 +310,10 @@ class EpaperRenderer {
             hourPaint
         )
 
-        // 2. Kim phút
+        // Kim phút
         val minPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            strokeWidth = 4.5f
+            strokeWidth = 4.2f
             strokeCap = Paint.Cap.ROUND
         }
         val minLen = radius * 0.80f
@@ -282,10 +324,10 @@ class EpaperRenderer {
             minPaint
         )
 
-        // 3. Kim giây
+        // Kim giây
         val secPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            strokeWidth = 2.2f
+            strokeWidth = 2.0f
             strokeCap = Paint.Cap.ROUND
         }
         val secLen = radius * 0.85f
@@ -318,7 +360,7 @@ class EpaperRenderer {
             color = inkColor
             style = Paint.Style.FILL
         }
-        canvas.drawCircle(cx, cy, 7.5f, dotPaint)
+        canvas.drawCircle(cx, cy, 7f, dotPaint)
     }
 
     private fun renderCalendar(
@@ -394,7 +436,10 @@ class EpaperRenderer {
         }
     }
 
-    private fun renderFooter(
+    /**
+     * FOOTER 2 CỘT (ĐÃ BỎ NHIỆT ĐỘ, BỎ CHỮ NGỰA, CHUẨN THIÊN VĂN 100%)
+     */
+    private fun renderFooter2Columns(
         canvas: Canvas,
         left: Float,
         top: Float,
@@ -403,65 +448,79 @@ class EpaperRenderer {
         cal: Calendar
     ) {
         val totalWidth = right - left
-        val col1Width = totalWidth * 0.37f
-        val col2Width = totalWidth * 0.36f
-        val col1Right = left + col1Width
-        val col2Right = col1Right + col2Width
+        // Chia 2 cột đều nhau (50% - 50%)
+        val splitX = left + (totalWidth * 0.50f)
 
-        canvas.drawLine(col1Right, top, col1Right, bottom, linePaint)
-        canvas.drawLine(col2Right, top, col2Right, bottom, linePaint)
+        // 1 vạch đứng phân cách duy nhất ở giữa
+        canvas.drawLine(splitX, top, splitX, bottom, linePaint)
 
         val day = cal.get(Calendar.DAY_OF_MONTH)
         val month = cal.get(Calendar.MONTH) + 1
         val year = cal.get(Calendar.YEAR)
         val lunar = LunarCalendar.getLunarDate(day, month, year)
 
-        // Ô 1: Can Chi + Âm Lịch
-        val footerTextSize = (bottom - top) * 0.27f
+        val footerTextSize = (bottom - top) * 0.28f
         textRegular.textAlign = Paint.Align.LEFT
         textRegular.textSize = footerTextSize
-        val fPadding = 18f
+        val fPadding = 20f
 
         val line1Y = top + (bottom - top) * 0.42f
         val line2Y = top + (bottom - top) * 0.82f
 
-        canvas.drawText("${lunar.canChiYear} (${lunar.animalYear})", left + fPadding, line1Y, textRegular)
+        // CỘT 1: CAN CHI NĂM (Bính Ngọ) + ÂM LỊCH (Âm Lịch 16/8)
+        canvas.drawText(lunar.canChiYear, left + fPadding, line1Y, textRegular)
         canvas.drawText("Âm Lịch ${lunar.day}/${lunar.month}", left + fPadding, line2Y, textRegular)
 
-        // Ô 2: Sự kiện đếm ngược
-        val event = LunarCalendar.getUpcomingEvent(cal)
-        canvas.drawText(event.first, col1Right + fPadding, line1Y, textRegular)
-        canvas.drawText("còn ${event.second} ngày", col1Right + fPadding, line2Y, textRegular)
+        // CỘT 2: SỰ KIỆN TÙY CHỈNH + ĐẾM NGƯỢC NGÀY
+        val daysLeft = calculateDaysUntil(eventDateStr, cal)
+        val displayEventTitle = if (eventTitle.isNotBlank()) eventTitle else "Sự kiện"
+        canvas.drawText(truncateText(displayEventTitle, textRegular, (right - splitX) - 30f), splitX + fPadding, line1Y, textRegular)
+        canvas.drawText("còn $daysLeft ngày", splitX + fPadding, line2Y, textRegular)
+    }
 
-        // Ô 3: Nhiệt độ số LED 7 đoạn
-        val col3CenterX = (col2Right + right) / 2f
-        val tempTextSize = (bottom - top) * 0.68f
-
-        val tempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = inkColor
-            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-            textSize = tempTextSize
-            textAlign = Paint.Align.RIGHT
+    private fun calculateDaysUntil(targetDateStr: String, currentCal: Calendar): Long {
+        return try {
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val targetDate = sdf.parse(targetDateStr)
+            if (targetDate != null) {
+                val diff = targetDate.time - currentCal.timeInMillis
+                (diff / (1000 * 60 * 60 * 24)).coerceAtLeast(0)
+            } else {
+                97
+            }
+        } catch (_: Exception) {
+            97
         }
-        val cPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = inkColor
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            textSize = tempTextSize * 0.48f
-            textAlign = Paint.Align.LEFT
-        }
-
-        val baselineY = top + (bottom - top) * 0.74f
-        canvas.drawText("$temperature°", col3CenterX + 10f, baselineY, tempPaint)
-        canvas.drawText("C", col3CenterX + 12f, baselineY - (tempTextSize * 0.35f), cPaint)
     }
 
     /**
-     * VẼ THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG (GOALS & QUOTES CARD)
+     * THẺ MỤC TIÊU & CHÂM NGÔN (CHỈ VẼ NHỮNG MỤC ĐƯỢC TICK CHỌN)
      */
     private fun renderGoalAndQuoteCard(canvas: Canvas, left: Float, top: Float, right: Float, cal: Calendar) {
+        val activeGoals = mutableListOf<Triple<String, String, String>>()
+        val year = cal.get(Calendar.YEAR)
+
+        if (showToday && todayGoal.isNotBlank()) {
+            activeGoals.add(Triple("Hôm nay:", todayGoal, "☑"))
+        }
+        if (showWeek && weekGoal.isNotBlank()) {
+            activeGoals.add(Triple("Tuần này:", weekGoal, "📅"))
+        }
+        if (showMonth && monthGoal.isNotBlank()) {
+            activeGoals.add(Triple("Tháng này:", monthGoal, "★"))
+        }
+        if (showYear && yearGoal.isNotBlank()) {
+            activeGoals.add(Triple("Năm $year:", yearGoal, "🎯"))
+        }
+
         val cardWidth = right - left
-        val cardHeight = cardWidth * 0.60f
+        // Tự động co giãn chiều cao theo số lượng mục tiêu được tick
+        val quoteH = 50f
+        val rowH = 34f
+        val goalListCount = activeGoals.size.coerceAtLeast(1)
+        val cardHeight = quoteH + (goalListCount * rowH) + 30f
         val bottom = top + cardHeight
+
         val rect = RectF(left, top, right, bottom)
         val cornerRadius = 14f
 
@@ -472,59 +531,45 @@ class EpaperRenderer {
         val inner = RectF(left + pad, top + pad, right - pad, bottom - pad)
         canvas.drawRect(inner, linePaint)
 
-        // 1. KHU VỰC CÂU NÓI TRUYỀN CẢM HỨNG (CHIẾM 35% CHIỀU CAO THẺ)
-        val quoteH = cardHeight * 0.35f
+        // 1. BANNER CHÂM NGÔN
         val quoteBottom = inner.top + quoteH
         canvas.drawLine(inner.left, quoteBottom, inner.right, quoteBottom, linePaint)
 
-        // Tiêu đề nhỏ "CHÂM NGÔN HÔM NAY"
         val qTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkMutedColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            textSize = quoteH * 0.22f
+            textSize = 12f
             textAlign = Paint.Align.CENTER
         }
         val centerX = (inner.left + inner.right) / 2f
-        canvas.drawText("❝ CHÂM NGÔN TRUYỀN CẢM HỨNG ❞", centerX, inner.top + (quoteH * 0.30f), qTitlePaint)
+        canvas.drawText("❝ CHÂM NGÔN TRUYỀN CẢM HỨNG ❞", centerX, inner.top + 18f, qTitlePaint)
 
-        // Nội dung câu nói chữ nghiêng mềm mại
         val quoteTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
-            textSize = quoteH * 0.32f
+            textSize = 16f
             textAlign = Paint.Align.CENTER
         }
         val maxQuoteW = inner.width() - 32f
-        var displayQuote = "“ $dailyQuote ”"
-        displayQuote = truncateText(displayQuote, quoteTextPaint, maxQuoteW)
-        canvas.drawText(displayQuote, centerX, inner.top + (quoteH * 0.72f), quoteTextPaint)
+        val displayQuote = truncateText("“ $dailyQuote ”", quoteTextPaint, maxQuoteW)
+        canvas.drawText(displayQuote, centerX, inner.top + 40f, quoteTextPaint)
 
-        // 2. KHU VỰC 3 MỤC TIÊU CÔNG VIỆC: NGÀY, THÁNG, NĂM
-        val contentH = inner.bottom - quoteBottom
-        val rowH = contentH / 3f
-
+        // 2. DANH SÁCH MỤC TIÊU ĐƯỢC CHỌN
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            textSize = rowH * 0.38f
+            textSize = 13.5f
             textAlign = Paint.Align.LEFT
         }
 
         val valPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            textSize = rowH * 0.36f
+            textSize = 13f
             textAlign = Paint.Align.LEFT
         }
 
-        val year = cal.get(Calendar.YEAR)
-        val rows = arrayOf(
-            Triple("Hôm nay:", todayGoal, "☑"),
-            Triple("Tháng này:", monthGoal, "★"),
-            Triple("Năm $year:", yearGoal, "🎯")
-        )
-
-        for (i in rows.indices) {
+        for (i in activeGoals.indices) {
             val rY = quoteBottom + (i * rowH)
             if (i > 0) {
                 val dashPaint = Paint(linePaint).apply {
@@ -534,12 +579,11 @@ class EpaperRenderer {
                 canvas.drawLine(inner.left + 10f, rY, inner.right - 10f, rY, dashPaint)
             }
 
-            val icon = rows[i].third
-            val label = rows[i].first
-            val value = rows[i].second
-            val baseline = rY + (rowH * 0.62f)
+            val icon = activeGoals[i].third
+            val label = activeGoals[i].first
+            val value = activeGoals[i].second
+            val baseline = rY + (rowH * 0.65f)
 
-            labelPaint.textSize = rowH * 0.36f
             canvas.drawText("$icon $label", inner.left + 16f, baseline, labelPaint)
 
             val labelW = labelPaint.measureText("$icon $label ")
