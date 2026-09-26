@@ -496,14 +496,7 @@ class EpaperRenderer {
         }
         val maxQuoteW = inner.width() - 32f
         var displayQuote = "“ $dailyQuote ”"
-        if (quoteTextPaint.measureText(displayQuote) > maxQuoteW) {
-            displayQuote = android.text.TextUtils.ellipsize(
-                displayQuote,
-                TextPaint(quoteTextPaint),
-                maxQuoteW,
-                android.text.TextUtils.TruncateAt.END
-            ).toString()
-        }
+        displayQuote = truncateText(displayQuote, quoteTextPaint, maxQuoteW)
         canvas.drawText(displayQuote, centerX, inner.top + (quoteH * 0.72f), quoteTextPaint)
 
         // 2. KHU VỰC 3 MỤC TIÊU CÔNG VIỆC: NGÀY, THÁNG, NĂM
@@ -552,16 +545,17 @@ class EpaperRenderer {
             val labelW = labelPaint.measureText("$icon $label ")
             val maxValW = (inner.right - 16f) - (inner.left + 16f + labelW)
 
-            var displayVal = value
-            if (valPaint.measureText(displayVal) > maxValW) {
-                displayVal = android.text.TextUtils.ellipsize(
-                    displayVal,
-                    TextPaint(valPaint),
-                    maxValW,
-                    android.text.TextUtils.TruncateAt.END
-                ).toString()
-            }
+            val displayVal = truncateText(value, valPaint, maxValW)
             canvas.drawText(displayVal, inner.left + 16f + labelW, baseline, valPaint)
         }
+    }
+
+    private fun truncateText(text: String, paint: Paint, maxWidth: Float): String {
+        if (paint.measureText(text) <= maxWidth) return text
+        var t = text
+        while (t.isNotEmpty() && paint.measureText("$t…") > maxWidth) {
+            t = t.dropLast(1)
+        }
+        return if (t.isEmpty()) "" else "$t…"
     }
 }
