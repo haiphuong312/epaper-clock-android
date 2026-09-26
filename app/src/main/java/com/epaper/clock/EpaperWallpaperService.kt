@@ -59,6 +59,7 @@ class EpaperWallpaperService : WallpaperService() {
             renderer.eventDateStr = prefs.getString("event_date", "01/01/2027") ?: "01/01/2027"
 
             renderer.dailyQuote = prefs.getString("daily_quote", "Làm Chủ Bản Thân") ?: "Làm Chủ Bản Thân"
+            renderer.quoteNote = prefs.getString("quote_note", "Kiểm soát cảm xúc, rèn luyện tư duy và hành động kỷ luật mỗi ngày để vươn tới tự do đích thực.") ?: ""
 
             renderer.showToday = prefs.getBoolean("show_today", true)
             renderer.todayGoal = prefs.getString("today_goal", "Fix xong tool cookie") ?: ""

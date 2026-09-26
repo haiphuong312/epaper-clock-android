@@ -56,8 +56,9 @@ class EpaperRenderer {
     var eventTitle: String = "Tết Dương Lịch"
     var eventDateStr: String = "01/01/2027"
 
-    // Câu nói hay
+    // Câu nói hay & chú thích diễn giải
     var dailyQuote: String = "Làm Chủ Bản Thân"
+    var quoteNote: String = "Kiểm soát cảm xúc, rèn luyện tư duy và hành động kỷ luật mỗi ngày để vươn tới tự do đích thực."
 
     // Kế hoạch và hiển thị
     var showToday: Boolean = true
@@ -77,10 +78,9 @@ class EpaperRenderer {
 
         val cardMarginH = width * 0.035f
         val cardWidth = width - (cardMarginH * 2)
-        // Thêm 1 dòng đồng hồ số 24h nên chiều cao thẻ chính tăng nhẹ (~0.88 tỉ lệ)
-        val cardHeight = cardWidth * 0.88f
+        val cardHeight = cardWidth * 0.86f
         val cardLeft = cardMarginH
-        val cardTop = height * 0.065f
+        val cardTop = height * 0.055f // Nâng nhẹ lên 5.5% để phía dưới cực kỳ rộng rãi cho thẻ mục tiêu to
         val cardRight = cardLeft + cardWidth
         val cardBottom = cardTop + cardHeight
 
@@ -100,10 +100,6 @@ class EpaperRenderer {
         canvas.drawRect(innerRect, linePaint)
 
         // Phân chia 4 phần trong Thẻ chính:
-        // 1. Header (13%)
-        // 2. Dòng Đồng hồ số 24h to rõ (15%)
-        // 3. Body: Đồng hồ kim + Lịch tháng (52%)
-        // 4. Footer 2 cột (20%)
         val headerHeight = cardHeight * 0.13f
         val digitalClockHeight = cardHeight * 0.15f
         val footerHeight = cardHeight * 0.20f
@@ -122,7 +118,7 @@ class EpaperRenderer {
         // 1. HEADER (Ngày, Buổi, Thứ, Pin)
         renderHeader(canvas, innerRect.left, innerRect.top, innerRect.right, headerBottom, now)
 
-        // 2. DÒNG ĐỒNG HỒ SỐ 24H TO RÕ (NẰM GIỮA HEADER VÀ ĐỒNG HỒ/LỊCH)
+        // 2. DÒNG ĐỒNG HỒ SỐ 24H TO RÕ
         renderDigitalClock24h(canvas, innerRect.left, headerBottom, innerRect.right, digitalClockBottom, now)
 
         // 3. BODY (Đồng hồ kim & Lịch tháng)
@@ -133,8 +129,8 @@ class EpaperRenderer {
         // 4. FOOTER (2 CỘT: Âm Lịch & Sự kiện đếm ngược)
         renderFooter2Columns(canvas, innerRect.left, footerTop, innerRect.right, innerRect.bottom, now)
 
-        // 5. THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG (Chỉ vẽ những mục được chọn)
-        renderGoalAndQuoteCard(canvas, cardLeft, cardBottom + 16f, cardRight, now)
+        // 5. THẺ MỤC TIÊU & CHÂM NGÔN TO RÕ RÀNG VỚI CHÚ THÍCH XUỐNG DÒNG
+        renderSpaciousGoalAndQuoteCard(canvas, cardLeft, cardBottom + 16f, cardRight, now)
     }
 
     private fun renderHeader(
@@ -204,9 +200,6 @@ class EpaperRenderer {
         canvas.drawRect(batX + 3f, batY + 3f, batX + (batWidth * 0.75f), batY + batHeight - 3f, fillPaint)
     }
 
-    /**
-     * DÒNG ĐỒNG HỒ KỸ THUẬT SỐ 24H TO RÕ
-     */
     private fun renderDigitalClock24h(
         canvas: Canvas,
         left: Float,
@@ -436,9 +429,6 @@ class EpaperRenderer {
         }
     }
 
-    /**
-     * FOOTER 2 CỘT (ĐÃ BỎ NHIỆT ĐỘ, BỎ CHỮ NGỰA, CHUẨN THIÊN VĂN 100%)
-     */
     private fun renderFooter2Columns(
         canvas: Canvas,
         left: Float,
@@ -448,10 +438,8 @@ class EpaperRenderer {
         cal: Calendar
     ) {
         val totalWidth = right - left
-        // Chia 2 cột đều nhau (50% - 50%)
         val splitX = left + (totalWidth * 0.50f)
 
-        // 1 vạch đứng phân cách duy nhất ở giữa
         canvas.drawLine(splitX, top, splitX, bottom, linePaint)
 
         val day = cal.get(Calendar.DAY_OF_MONTH)
@@ -467,11 +455,9 @@ class EpaperRenderer {
         val line1Y = top + (bottom - top) * 0.42f
         val line2Y = top + (bottom - top) * 0.82f
 
-        // CỘT 1: CAN CHI NĂM (Bính Ngọ) + ÂM LỊCH (Âm Lịch 16/8)
         canvas.drawText(lunar.canChiYear, left + fPadding, line1Y, textRegular)
         canvas.drawText("Âm Lịch ${lunar.day}/${lunar.month}", left + fPadding, line2Y, textRegular)
 
-        // CỘT 2: SỰ KIỆN TÙY CHỈNH + ĐẾM NGƯỢC NGÀY
         val daysLeft = calculateDaysUntil(eventDateStr, cal)
         val displayEventTitle = if (eventTitle.isNotBlank()) eventTitle else "Sự kiện"
         canvas.drawText(truncateText(displayEventTitle, textRegular, (right - splitX) - 30f), splitX + fPadding, line1Y, textRegular)
@@ -486,17 +472,17 @@ class EpaperRenderer {
                 val diff = targetDate.time - currentCal.timeInMillis
                 (diff / (1000 * 60 * 60 * 24)).coerceAtLeast(0)
             } else {
-                97
+                96
             }
         } catch (_: Exception) {
-            97
+            96
         }
     }
 
     /**
-     * THẺ MỤC TIÊU & CHÂM NGÔN (CHỈ VẼ NHỮNG MỤC ĐƯỢC TICK CHỌN)
+     * THẺ MỤC TIÊU & CHÂM NGÔN TO RÕ RÀNG VỚI CHÚ THÍCH TỰ ĐỘNG XUỐNG DÒNG
      */
-    private fun renderGoalAndQuoteCard(canvas: Canvas, left: Float, top: Float, right: Float, cal: Calendar) {
+    private fun renderSpaciousGoalAndQuoteCard(canvas: Canvas, left: Float, top: Float, right: Float, cal: Calendar) {
         val activeGoals = mutableListOf<Triple<String, String, String>>()
         val year = cal.get(Calendar.YEAR)
 
@@ -514,11 +500,8 @@ class EpaperRenderer {
         }
 
         val cardWidth = right - left
-        // Tự động co giãn chiều cao theo số lượng mục tiêu được tick
-        val quoteH = 50f
-        val rowH = 34f
-        val goalListCount = activeGoals.size.coerceAtLeast(1)
-        val cardHeight = quoteH + (goalListCount * rowH) + 30f
+        // Chiều cao rộng rãi, to đẹp như cũ (~0.62 tỉ lệ)
+        val cardHeight = cardWidth * 0.62f
         val bottom = top + cardHeight
 
         val rect = RectF(left, top, right, bottom)
@@ -531,66 +514,136 @@ class EpaperRenderer {
         val inner = RectF(left + pad, top + pad, right - pad, bottom - pad)
         canvas.drawRect(inner, linePaint)
 
-        // 1. BANNER CHÂM NGÔN
-        val quoteBottom = inner.top + quoteH
+        // 1. PHẦN CHÂM NGÔN & CHÚ THÍCH (Chiếm 45% chiều cao thẻ)
+        val quoteSectionHeight = cardHeight * 0.44f
+        val quoteBottom = inner.top + quoteSectionHeight
         canvas.drawLine(inner.left, quoteBottom, inner.right, quoteBottom, linePaint)
 
-        val qTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val centerX = (inner.left + inner.right) / 2f
+        val maxTextWidth = inner.width() - 36f
+
+        // Tiêu đề nhỏ trên cùng
+        val qHeaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkMutedColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            textSize = 12f
+            textSize = cardWidth * 0.030f
             textAlign = Paint.Align.CENTER
         }
-        val centerX = (inner.left + inner.right) / 2f
-        canvas.drawText("❝ CHÂM NGÔN TRUYỀN CẢM HỨNG ❞", centerX, inner.top + 18f, qTitlePaint)
+        canvas.drawText("❝ CHÂM NGÔN TRUYỀN CẢM HỨNG ❞", centerX, inner.top + (cardHeight * 0.07f), qHeaderPaint)
 
-        val quoteTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        // Tiêu đề châm ngôn TO VÀ ĐẬM (Chữ to như cũ)
+        val quoteTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
-            textSize = 16f
+            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD_ITALIC)
+            textSize = cardWidth * 0.052f
             textAlign = Paint.Align.CENTER
         }
-        val maxQuoteW = inner.width() - 32f
-        val displayQuote = truncateText("“ $dailyQuote ”", quoteTextPaint, maxQuoteW)
-        canvas.drawText(displayQuote, centerX, inner.top + 40f, quoteTextPaint)
+        val displayTitle = truncateText("“ $dailyQuote ”", quoteTitlePaint, maxTextWidth)
+        canvas.drawText(displayTitle, centerX, inner.top + (cardHeight * 0.16f), quoteTitlePaint)
 
-        // 2. DANH SÁCH MỤC TIÊU ĐƯỢC CHỌN
+        // Chú thích diễn giải bên dưới: Chữ nhỏ hơn, tự động ngắt từ và xuống dòng gọn gàng
+        if (quoteNote.isNotBlank()) {
+            val notePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.parseColor("#4A4A48")
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+                textSize = cardWidth * 0.032f
+                textAlign = Paint.Align.CENTER
+            }
+            val lineHeight = notePaint.textSize * 1.35f
+            drawMultiLineText(
+                canvas = canvas,
+                text = quoteNote,
+                x = centerX,
+                startY = inner.top + (cardHeight * 0.24f),
+                paint = notePaint,
+                maxWidth = maxTextWidth,
+                lineHeight = lineHeight,
+                maxLines = 3
+            )
+        }
+
+        // 2. PHẦN KẾ HOẠCH MỤC TIÊU (Chiếm 56% còn lại)
+        val goalsTop = quoteBottom
+        val goalCount = activeGoals.size.coerceAtLeast(1)
+        val availableGoalsHeight = inner.bottom - goalsTop
+        val rowH = availableGoalsHeight / goalCount
+
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            textSize = 13.5f
+            textSize = (rowH * 0.38f).coerceAtMost(cardWidth * 0.038f)
             textAlign = Paint.Align.LEFT
         }
 
         val valPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            textSize = 13f
+            textSize = (rowH * 0.36f).coerceAtMost(cardWidth * 0.036f)
             textAlign = Paint.Align.LEFT
         }
 
         for (i in activeGoals.indices) {
-            val rY = quoteBottom + (i * rowH)
+            val rY = goalsTop + (i * rowH)
             if (i > 0) {
                 val dashPaint = Paint(linePaint).apply {
                     pathEffect = DashPathEffect(floatArrayOf(5f, 5f), 0f)
                     strokeWidth = 1f
                 }
-                canvas.drawLine(inner.left + 10f, rY, inner.right - 10f, rY, dashPaint)
+                canvas.drawLine(inner.left + 12f, rY, inner.right - 12f, rY, dashPaint)
             }
 
             val icon = activeGoals[i].third
             val label = activeGoals[i].first
             val value = activeGoals[i].second
-            val baseline = rY + (rowH * 0.65f)
+            val baseline = rY + (rowH * 0.62f)
 
-            canvas.drawText("$icon $label", inner.left + 16f, baseline, labelPaint)
+            canvas.drawText("$icon $label", inner.left + 18f, baseline, labelPaint)
 
             val labelW = labelPaint.measureText("$icon $label ")
-            val maxValW = (inner.right - 16f) - (inner.left + 16f + labelW)
+            val maxValW = (inner.right - 18f) - (inner.left + 18f + labelW)
 
             val displayVal = truncateText(value, valPaint, maxValW)
-            canvas.drawText(displayVal, inner.left + 16f + labelW, baseline, valPaint)
+            canvas.drawText(displayVal, inner.left + 18f + labelW, baseline, valPaint)
+        }
+    }
+
+    /**
+     * HÀM TỰ ĐỘNG NGẮT TỪ VÀ XUỐNG DÒNG (PURE KOTLIN, KHÔNG PHỤ THUỘC TEXTPAINT)
+     */
+    private fun drawMultiLineText(
+        canvas: Canvas,
+        text: String,
+        x: Float,
+        startY: Float,
+        paint: Paint,
+        maxWidth: Float,
+        lineHeight: Float,
+        maxLines: Int = 3
+    ) {
+        val words = text.split(" ")
+        var currentLine = ""
+        var currentY = startY
+        var linesDrawn = 0
+
+        for (word in words) {
+            val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
+            if (paint.measureText(testLine) <= maxWidth) {
+                currentLine = testLine
+            } else {
+                if (currentLine.isNotEmpty()) {
+                    if (linesDrawn == maxLines - 1) {
+                        canvas.drawText(truncateText(currentLine, paint, maxWidth), x, currentY, paint)
+                        return
+                    }
+                    canvas.drawText(currentLine, x, currentY, paint)
+                    linesDrawn++
+                    currentY += lineHeight
+                }
+                currentLine = word
+            }
+        }
+        if (currentLine.isNotEmpty() && linesDrawn < maxLines) {
+            canvas.drawText(currentLine, x, currentY, paint)
         }
     }
 

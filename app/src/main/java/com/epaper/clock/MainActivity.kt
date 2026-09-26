@@ -23,8 +23,10 @@ class MainActivity : AppCompatActivity() {
         val edtEventTitle = findViewById<EditText>(R.id.edtEventTitle)
         val edtEventDate = findViewById<EditText>(R.id.edtEventDate)
 
-        // Câu nói
+        // Câu nói & chú thích
         val edtQuote = findViewById<EditText>(R.id.edtQuote)
+        val edtQuoteNote = findViewById<EditText>(R.id.edtQuoteNote)
+
         val btnQ1 = findViewById<Button>(R.id.btnQuote1)
         val btnQ2 = findViewById<Button>(R.id.btnQuote2)
         val btnQ3 = findViewById<Button>(R.id.btnQuote3)
@@ -43,16 +45,29 @@ class MainActivity : AppCompatActivity() {
         val btnSave = findViewById<Button>(R.id.btnSaveGoals)
         val btnSet = findViewById<Button>(R.id.btnSetWallpaper)
 
-        btnQ1.setOnClickListener { edtQuote.setText("Làm Chủ Bản Thân") }
-        btnQ2.setOnClickListener { edtQuote.setText("Kỷ luật là tự do") }
-        btnQ3.setOnClickListener { edtQuote.setText("Hành trình vạn dặm khởi từ một bước") }
-        btnQ4.setOnClickListener { edtQuote.setText("Mỗi ngày tốt hơn hôm qua 1%") }
+        btnQ1.setOnClickListener {
+            edtQuote.setText("Làm Chủ Bản Thân")
+            edtQuoteNote.setText("Kiểm soát cảm xúc, rèn luyện tư duy và hành động kỷ luật mỗi ngày để vươn tới tự do đích thực.")
+        }
+        btnQ2.setOnClickListener {
+            edtQuote.setText("Kỷ Luật Là Tự Do")
+            edtQuoteNote.setText("Kỷ luật chính là chiếc cầu nối bền vững duy nhất giữa mục tiêu mơ ước và thành tựu thực tế.")
+        }
+        btnQ3.setOnClickListener {
+            edtQuote.setText("Vạn Dặm Khởi Từ Một Bước")
+            edtQuoteNote.setText("Không sợ đi chậm, chỉ sợ đứng yên. Mỗi nỗ lực nhỏ hôm nay đều tạo nên tương lai vĩ đại.")
+        }
+        btnQ4.setOnClickListener {
+            edtQuote.setText("Tốt Hơn Hôm Qua 1%")
+            edtQuoteNote.setText("Tập trung vào tiến trình phát triển của chính mình, kiên định và không bao giờ từ bỏ.")
+        }
 
         // Tải dữ liệu đã lưu
         edtEventTitle.setText(prefs.getString("event_title", "Tết Dương Lịch"))
         edtEventDate.setText(prefs.getString("event_date", "01/01/2027"))
 
         edtQuote.setText(prefs.getString("daily_quote", "Làm Chủ Bản Thân"))
+        edtQuoteNote.setText(prefs.getString("quote_note", "Kiểm soát cảm xúc, rèn luyện tư duy và hành động kỷ luật mỗi ngày để vươn tới tự do đích thực."))
 
         cbShowToday.isChecked = prefs.getBoolean("show_today", true)
         edtToday.setText(prefs.getString("today_goal", "Fix xong tool cookie"))
@@ -72,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                 putString("event_date", edtEventDate.text.toString().trim())
 
                 putString("daily_quote", edtQuote.text.toString().trim())
+                putString("quote_note", edtQuoteNote.text.toString().trim())
 
                 putBoolean("show_today", cbShowToday.isChecked)
                 putString("today_goal", edtToday.text.toString().trim())
