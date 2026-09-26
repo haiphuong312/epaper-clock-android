@@ -4,8 +4,8 @@ import java.util.Calendar
 import kotlin.math.floor
 
 /**
- * Thuật toán tính Âm lịch Việt Nam chuẩn Thiên văn học (Hồ Ngọc Đức)
- * Hỗ trợ tính Can Chi, ngày Âm lịch, con giáp và các ngày lễ.
+ * Thuật toán Âm lịch Việt Nam chuẩn Thiên văn học (Hồ Ngọc Đức)
+ * Múi giờ chuẩn UTC+7 (Hà Nội, TP.HCM)
  */
 object LunarCalendar {
 

@@ -9,11 +9,11 @@ import kotlin.math.sin
 class EpaperRenderer {
 
     // Màu mực E-Paper
-    private val bgBezelColor = Color.parseColor("#1A1A1A")     // Nền màn hình ngoài đen AMOLED
+    private val bgBezelColor = Color.parseColor("#121212")     // Nền ngoài đen AMOLED Samsung
     private val cardBgColor = Color.parseColor("#EAEAE6")      // Nền giấy E-Ink xám nhạt
-    private val inkColor = Color.parseColor("#121212")         // Mực đen
-    private val inkMutedColor = Color.parseColor("#7A7A78")    // Mực xám nhạt cho vạch/tiêu đề
-    private val borderStrokeColor = Color.parseColor("#252525")// Viền khung
+    private val inkColor = Color.parseColor("#151515")         // Mực đen đậm
+    private val inkMutedColor = Color.parseColor("#6E6E6E")    // Mực xám nhạt cho vạch/tiêu đề
+    private val borderStrokeColor = Color.parseColor("#222222")// Viền khung đen
 
     private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = cardBgColor
@@ -23,7 +23,7 @@ class EpaperRenderer {
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = borderStrokeColor
         style = Paint.Style.STROKE
-        strokeWidth = 3f
+        strokeWidth = 4f
     }
 
     private val inkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -47,33 +47,34 @@ class EpaperRenderer {
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = borderStrokeColor
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 2.5f
     }
 
-    var batteryVoltage: Float = 3.85f
+    var batteryVoltage: Float = 3.9f
     var temperature: Int = 31
 
     fun render(canvas: Canvas, width: Int, height: Int) {
-        // 1. Phủ đen toàn bộ màn hình (Tiết kiệm pin AMOLED của Samsung)
+        // 1. Nền đen sâu AMOLED
         canvas.drawColor(bgBezelColor)
 
-        // 2. Tính toán kích thước khung thẻ E-paper trung tâm (Tỉ lệ ~ 4:3)
-        val cardMarginHorizontal = width * 0.04f
-        val cardWidth = width - (cardMarginHorizontal * 2)
-        val cardHeight = cardWidth * 0.78f
-        val cardLeft = cardMarginHorizontal
-        val cardTop = (height - cardHeight) * 0.38f // Đặt cân đối ở nửa trên/giữa màn hình
+        // 2. Khung thẻ E-paper trung tâm
+        val cardMarginH = width * 0.035f
+        val cardWidth = width - (cardMarginH * 2)
+        val cardHeight = cardWidth * 0.76f
+        val cardLeft = cardMarginH
+        val cardTop = (height - cardHeight) * 0.28f // Đặt ở vị trí 28% từ đỉnh màn hình
         val cardRight = cardLeft + cardWidth
         val cardBottom = cardTop + cardHeight
 
         val cardRect = RectF(cardLeft, cardTop, cardRight, cardBottom)
-        val cornerRadius = 12f
+        val cornerRadius = 14f
 
-        // Vẽ nền thẻ giấy E-Ink & Viền kép
+        // Vẽ nền thẻ E-ink & Viền khung ngoài
         canvas.drawRoundRect(cardRect, cornerRadius, cornerRadius, cardPaint)
         canvas.drawRoundRect(cardRect, cornerRadius, cornerRadius, borderPaint)
 
-        val innerPadding = cardWidth * 0.02f
+        // Viền chỉ đôi bên trong
+        val innerPadding = cardWidth * 0.018f
         val innerRect = RectF(
             cardLeft + innerPadding,
             cardTop + innerPadding,
@@ -83,13 +84,8 @@ class EpaperRenderer {
         canvas.drawRect(innerRect, linePaint)
 
         // Phân chia layout:
-        // Header cao 14%
-        // Body cao 64%
-        // Footer cao 22%
-        val headerHeight = cardHeight * 0.14f
-        val footerHeight = cardHeight * 0.22f
-        val bodyHeight = cardHeight - headerHeight - footerHeight
-
+        val headerHeight = cardHeight * 0.15f
+        val footerHeight = cardHeight * 0.23f
         val headerBottom = innerRect.top + headerHeight
         val footerTop = innerRect.bottom - footerHeight
 
@@ -102,7 +98,7 @@ class EpaperRenderer {
         // 3. VẼ PHẦN HEADER
         renderHeader(canvas, innerRect.left, innerRect.top, innerRect.right, headerBottom, now)
 
-        // 4. VẼ PHẦN BODY (Đồng hồ kim bên trái, Lịch tháng bên phải)
+        // 4. VẼ PHẦN BODY (Đồng hồ kim 45%, Lịch tháng 55%)
         val splitX = innerRect.left + (innerRect.width() * 0.44f)
         renderAnalogClock(canvas, innerRect.left, headerBottom, splitX, footerTop, now)
         renderCalendar(canvas, splitX, headerBottom, innerRect.right, footerTop, now)
@@ -120,12 +116,13 @@ class EpaperRenderer {
         cal: Calendar
     ) {
         val centerY = (top + bottom) / 2f
-        val textSize = (bottom - top) * 0.45f
-        inkPaint.textSize = textSize
+        val textSize = (bottom - top) * 0.46f
 
-        // Ngày dd/MM/yyyy
+        // Ngày dd/MM/yyyy (Căn lề TRÁI chuẩn mực, không bao giờ bị tràn)
+        inkPaint.textAlign = Paint.Align.LEFT
+        inkPaint.textSize = textSize
         val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(cal.time)
-        canvas.drawText(dateStr, left + 20f, centerY + (textSize * 0.35f), inkPaint)
+        canvas.drawText(dateStr, left + 18f, centerY + (textSize * 0.35f), inkPaint)
 
         // Buổi: Sáng / Trưa / Chiều / Tối
         val hour = cal.get(Calendar.HOUR_OF_DAY)
@@ -135,9 +132,10 @@ class EpaperRenderer {
             in 14..17 -> "Chiều"
             else -> "Tối"
         }
-        textRegular.textSize = textSize * 0.85f
-        val periodX = left + ((right - left) * 0.42f)
-        canvas.drawText(periodStr, periodX, centerY + (textSize * 0.3f), textRegular)
+        textRegular.textAlign = Paint.Align.CENTER
+        textRegular.textSize = textSize * 0.88f
+        val periodX = left + ((right - left) * 0.43f)
+        canvas.drawText(periodStr, periodX, centerY + (textSize * 0.32f), textRegular)
 
         // Thứ
         val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
@@ -150,32 +148,35 @@ class EpaperRenderer {
             Calendar.SATURDAY -> "Thứ bảy"
             else -> "Chủ nhật"
         }
-        val dowX = left + ((right - left) * 0.58f)
-        canvas.drawText(dowStr, dowX, centerY + (textSize * 0.3f), textRegular)
+        val dowX = left + ((right - left) * 0.63f)
+        canvas.drawText(dowStr, dowX, centerY + (textSize * 0.32f), textRegular)
 
-        // Điện áp & icon pin bên góc phải
+        // Điện áp & icon pin (Căn lề PHẢI chuẩn mực)
         val voltStr = String.format(Locale.US, "%.1fv", batteryVoltage)
-        textRegular.textSize = textSize * 0.65f
-        val voltWidth = textRegular.measureText(voltStr)
-        val voltX = right - voltWidth - 55f
-        canvas.drawText(voltStr, voltX, centerY + (textSize * 0.25f), textRegular)
+        textRegular.textAlign = Paint.Align.RIGHT
+        textRegular.textSize = textSize * 0.68f
+        val batRight = right - 12f
+        val batWidth = 32f
+        val batHeight = 18f
+        val batX = batRight - batWidth
+        val batY = centerY - (batHeight / 2f)
 
-        // Vẽ biểu tượng pin nhỏ
-        val batX = right - 45f
-        val batY = centerY - 10f
+        canvas.drawText(voltStr, batX - 8f, centerY + (textSize * 0.25f), textRegular)
+
+        // Vẽ biểu tượng pin
         val batPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             style = Paint.Style.STROKE
-            strokeWidth = 2f
+            strokeWidth = 2.5f
         }
-        canvas.drawRect(batX, batY, batX + 28f, batY + 18f, batPaint)
-        canvas.drawRect(batX + 28f, batY + 4f, batX + 32f, batY + 14f, batPaint) // Cực dương pin
-        // Mức pin bên trong
+        canvas.drawRect(batX, batY, batX + batWidth, batY + batHeight, batPaint)
+        canvas.drawRect(batX + batWidth, batY + 4f, batX + batWidth + 4f, batY + batHeight - 4f, batPaint)
+
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             style = Paint.Style.FILL
         }
-        canvas.drawRect(batX + 3f, batY + 3f, batX + 20f, batY + 15f, fillPaint)
+        canvas.drawRect(batX + 3f, batY + 3f, batX + (batWidth * 0.75f), batY + batHeight - 3f, fillPaint)
     }
 
     private fun renderAnalogClock(
@@ -188,9 +189,25 @@ class EpaperRenderer {
     ) {
         val cx = (left + right) / 2f
         val cy = (top + bottom) / 2f
-        val radius = ((right - left).coerceAtMost(bottom - top) / 2f) * 0.85f
+        val radius = ((right - left).coerceAtMost(bottom - top) / 2f) * 0.88f
 
-        // 1. Vẽ các vạch chia phút (60 vạch) và vạch giờ (12 vạch)
+        // Họa tiết hoa nan hoa tỏa tròn ở tâm (như ảnh gốc)
+        val flowerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#D4D4D0")
+            strokeWidth = 1f
+        }
+        for (i in 0 until 48) {
+            val ang = Math.toRadians((i * 7.5).toDouble())
+            val flLen = radius * 0.38f
+            canvas.drawLine(
+                cx, cy,
+                (cx + flLen * sin(ang)).toFloat(),
+                (cy - flLen * cos(ang)).toFloat(),
+                flowerPaint
+            )
+        }
+
+        // Vạch chia phút (60 vạch) và vạch giờ (12 vạch)
         val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             strokeCap = Paint.Cap.ROUND
@@ -199,8 +216,8 @@ class EpaperRenderer {
         for (i in 0 until 60) {
             val angle = Math.toRadians((i * 6).toDouble())
             val isHour = i % 5 == 0
-            val tickLength = if (isHour) radius * 0.12f else radius * 0.05f
-            tickPaint.strokeWidth = if (isHour) 3.5f else 1.5f
+            val tickLength = if (isHour) radius * 0.13f else radius * 0.05f
+            tickPaint.strokeWidth = if (isHour) 3.5f else 1.8f
 
             val startX = (cx + (radius - tickLength) * sin(angle)).toFloat()
             val startY = (cy - (radius - tickLength) * cos(angle)).toFloat()
@@ -210,9 +227,9 @@ class EpaperRenderer {
             canvas.drawLine(startX, startY, stopX, stopY, tickPaint)
         }
 
-        // 2. Vẽ số 1 đến 12
-        inkPaint.textSize = radius * 0.22f
+        // Số 1 đến 12
         inkPaint.textAlign = Paint.Align.CENTER
+        inkPaint.textSize = radius * 0.22f
         val numberRadius = radius * 0.72f
 
         for (i in 1..12) {
@@ -222,21 +239,20 @@ class EpaperRenderer {
             canvas.drawText(i.toString(), numX, numY, inkPaint)
         }
 
-        // 3. Kim giờ & Kim phút
+        // Kim giờ & Kim phút
         val hours = cal.get(Calendar.HOUR)
         val minutes = cal.get(Calendar.MINUTE)
-        val seconds = cal.get(Calendar.SECOND)
 
         val hourAngle = Math.toRadians(((hours * 30) + (minutes * 0.5)).toDouble())
         val minuteAngle = Math.toRadians((minutes * 6).toDouble())
 
-        // Kim giờ (ngắn và dày)
+        // Kim giờ
         val hourPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            strokeWidth = 6f
+            strokeWidth = 7f
             strokeCap = Paint.Cap.ROUND
         }
-        val hourLen = radius * 0.5f
+        val hourLen = radius * 0.52f
         canvas.drawLine(
             cx, cy,
             (cx + hourLen * sin(hourAngle)).toFloat(),
@@ -244,13 +260,13 @@ class EpaperRenderer {
             hourPaint
         )
 
-        // Kim phút (dài và thanh)
+        // Kim phút
         val minPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
-            strokeWidth = 4f
+            strokeWidth = 4.5f
             strokeCap = Paint.Cap.ROUND
         }
-        val minLen = radius * 0.78f
+        val minLen = radius * 0.80f
         canvas.drawLine(
             cx, cy,
             (cx + minLen * sin(minuteAngle)).toFloat(),
@@ -258,12 +274,12 @@ class EpaperRenderer {
             minPaint
         )
 
-        // Chốt trục kim ở tâm
+        // Chốt kim ở tâm
         val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             style = Paint.Style.FILL
         }
-        canvas.drawCircle(cx, cy, 7f, dotPaint)
+        canvas.drawCircle(cx, cy, 7.5f, dotPaint)
     }
 
     private fun renderCalendar(
@@ -280,9 +296,9 @@ class EpaperRenderer {
 
         // Hàng tiêu đề thứ: CN  T2  T3  T4  T5  T6  T7
         val headers = arrayOf("CN", "T2", "T3", "T4", "T5", "T6", "T7")
-        val headerY = top + (calHeight * 0.16f)
-        textMuted.textSize = colWidth * 0.42f
+        val headerY = top + (calHeight * 0.17f)
         textMuted.textAlign = Paint.Align.CENTER
+        textMuted.textSize = colWidth * 0.42f
 
         for (i in 0 until 7) {
             val hx = left + (i * colWidth) + (colWidth / 2f)
@@ -299,7 +315,7 @@ class EpaperRenderer {
         val firstDayOfWeek = tempCal.get(Calendar.DAY_OF_WEEK) - 1 // 0: CN, 1: T2...
         val maxDays = tempCal.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-        val rowHeight = (calHeight - (headerY - top) - 20f) / 6f
+        val rowHeight = (calHeight - (headerY - top) - 16f) / 6f
         var currentXIndex = firstDayOfWeek
         var currentYIndex = 1
 
@@ -316,7 +332,7 @@ class EpaperRenderer {
         }
 
         val currentDayTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = cardBgColor // Chữ màu trắng/nền khi ở trong vòng tròn đen
+            color = cardBgColor // Chữ trắng bên trong vòng tròn đen
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textSize = colWidth * 0.48f
             textAlign = Paint.Align.CENTER
@@ -351,8 +367,9 @@ class EpaperRenderer {
         cal: Calendar
     ) {
         val totalWidth = right - left
-        val col1Width = totalWidth * 0.36f
-        val col2Width = totalWidth * 0.42f
+        // Chia tỷ lệ: Cột 1 (37%), Cột 2 (36%), Cột 3 (27% để nhiệt độ không bị chém)
+        val col1Width = totalWidth * 0.37f
+        val col2Width = totalWidth * 0.36f
         val col1Right = left + col1Width
         val col2Right = col1Right + col2Width
 
@@ -366,9 +383,9 @@ class EpaperRenderer {
         val lunar = LunarCalendar.getLunarDate(day, month, year)
 
         // Ô 1: Can Chi + Âm Lịch
-        val footerTextSize = (bottom - top) * 0.26f
-        textRegular.textSize = footerTextSize
+        val footerTextSize = (bottom - top) * 0.27f
         textRegular.textAlign = Paint.Align.LEFT
+        textRegular.textSize = footerTextSize
         val fPadding = 18f
 
         val line1Y = top + (bottom - top) * 0.42f
@@ -382,24 +399,25 @@ class EpaperRenderer {
         canvas.drawText(event.first, col1Right + fPadding, line1Y, textRegular)
         canvas.drawText("còn ${event.second} ngày", col1Right + fPadding, line2Y, textRegular)
 
-        // Ô 3: Nhiệt độ số LED 7 đoạn (Góc phải dưới)
-        val tempX = col2Right + fPadding
-        val tempTextSize = (bottom - top) * 0.65f
+        // Ô 3: Nhiệt độ số LED 7 đoạn (Căn giữa hoàn hảo trong ô thứ 3)
+        val col3CenterX = (col2Right + right) / 2f
+        val tempTextSize = (bottom - top) * 0.68f
+
         val tempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             textSize = tempTextSize
-            textAlign = Paint.Align.LEFT
+            textAlign = Paint.Align.RIGHT
         }
-        canvas.drawText("$temperature°", tempX, top + (bottom - top) * 0.72f, tempPaint)
-        
         val cPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            textSize = tempTextSize * 0.45f
+            textSize = tempTextSize * 0.48f
             textAlign = Paint.Align.LEFT
         }
-        val tempMeasure = tempPaint.measureText("$temperature°")
-        canvas.drawText("C", tempX + tempMeasure + 4f, top + (bottom - top) * 0.45f, cPaint)
+
+        val baselineY = top + (bottom - top) * 0.74f
+        canvas.drawText("$temperature°", col3CenterX + 10f, baselineY, tempPaint)
+        canvas.drawText("C", col3CenterX + 12f, baselineY - (tempTextSize * 0.35f), cPaint)
     }
 }
