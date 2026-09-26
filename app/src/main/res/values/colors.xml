@@ -1,0 +1,8 @@
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="epaper_bg">#FFEBEBE8</color>
+    <color name="epaper_ink">#FF181818</color>
+    <color name="epaper_gray">#FF707070</color>
+    <color name="primary">#FF2A2A2A</color>
+</resources>
