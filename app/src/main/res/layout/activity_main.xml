@@ -26,15 +26,110 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:gravity="center"
-            android:text="Cài đặt mục tiêu hiển thị lên Màn hình khóa"
+            android:text="Cài đặt Mục tiêu &amp; Châm ngôn sống hiển thị trên Màn hình khóa"
             android:textColor="#888888"
             android:textSize="13sp" />
 
-        <!-- Card nhập mục tiêu -->
+        <!-- Card Câu nói hay trong ngày -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
+            android:background="#1E1E1E"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💬 CÂU NÓI TRUYỀN CẢM HỨNG HÔM NAY"
+                android:textColor="#EAEAE6"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtQuote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="#2A2A2A"
+                android:gravity="top|start"
+                android:hint="Tự nhập câu nói hay của bạn..."
+                android:minLines="2"
+                android:padding="10dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#666666"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Hoặc chọn nhanh câu nói mẫu:"
+                android:textColor="#9E9E9E"
+                android:textSize="12sp" />
+
+            <!-- Các nút bấm chọn nhanh câu nói -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnQuote1"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="Kỷ luật là tự do"
+                        android:textColor="#E0E0E0"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btnQuote2"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="Hành trình vạn dặm..."
+                        android:textColor="#E0E0E0"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btnQuote3"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="Tốt hơn hôm qua 1%"
+                        android:textColor="#E0E0E0"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btnQuote4"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:text="Tập trung vào hiện tại"
+                        android:textColor="#E0E0E0"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+        </LinearLayout>
+
+        <!-- Card mục tiêu công việc -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
             android:background="#1E1E1E"
             android:orientation="vertical"
             android:padding="16dp">
@@ -50,7 +145,7 @@
             <EditText
                 android:id="@+id/edtTodayGoal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="6dp"
                 android:background="#2A2A2A"
                 android:hint="Ví dụ: Tập thể dục 30p, Đọc 20 trang sách..."
@@ -62,7 +157,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:text="📅 MỤC TIÊU THÁNG NÀY"
                 android:textColor="#EAEAE6"
                 android:textSize="14sp"
@@ -71,7 +166,7 @@
             <EditText
                 android:id="@+id/edtMonthGoal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="6dp"
                 android:background="#2A2A2A"
                 android:hint="Ví dụ: Hoàn thành khóa học, Tiết kiệm 10tr..."
@@ -83,7 +178,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="14dp"
                 android:text="🎯 MỤC TIÊU NĂM NAY"
                 android:textColor="#EAEAE6"
                 android:textSize="14sp"
@@ -92,7 +187,7 @@
             <EditText
                 android:id="@+id/edtYearGoal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="6dp"
                 android:background="#2A2A2A"
                 android:hint="Ví dụ: Chạy bộ 500km, Mua xe mới..."
@@ -105,22 +200,34 @@
                 android:id="@+id/btnSaveGoals"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 android:backgroundTint="#4CAF50"
-                android:text="💾 Lưu &amp; Cập nhật Mục Tiêu"
+                android:text="💾 Lưu &amp; Cập nhật Ngay"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
+        <!-- Hướng dẫn và Nút cài hình nền -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="#263238"
+            android:padding="12dp"
+            android:text="💡 Mẹo cho máy Samsung: Khi bấm nút bên dưới, màn hình xem trước của Samsung sẽ hiện 2 tùy chọn:\n• 'Màn hình khóa'\n• 'Màn hình chính và màn hình khóa'\nBạn hãy chọn 'Màn hình khóa' để chỉ áp dụng cho màn hình khóa nhé!"
+            android:textColor="#80CBC4"
+            android:textSize="13sp" />
+
         <Button
             android:id="@+id/btnSetWallpaper"
             android:layout_width="match_parent"
             android:layout_height="54dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="24dp"
             android:backgroundTint="#FFFFFF"
-            android:text="⚙️ Cài đặt làm Hình nền Màn hình khóa"
+            android:text="⚙️ Cài làm Hình nền Màn hình khóa"
             android:textColor="#000000"
             android:textSize="15sp"
             android:textStyle="bold" />

@@ -53,6 +53,7 @@ class EpaperRenderer {
     var batteryVoltage: Float = 3.9f
     var temperature: Int = 31
 
+    var dailyQuote: String = "Hành trình vạn dặm bắt đầu từ một bước chân."
     var todayGoal: String = "Tập thể dục 30p • Đọc 20 trang sách"
     var monthGoal: String = "Tiết kiệm chi tiêu • Hoàn thành dự án"
     var yearGoal: String = "Chạy bộ 500km • Học kỹ năng mới"
@@ -66,7 +67,7 @@ class EpaperRenderer {
         val cardWidth = width - (cardMarginH * 2)
         val cardHeight = cardWidth * 0.76f
         val cardLeft = cardMarginH
-        val cardTop = height * 0.09f // Đẩy lên 9% để dành không gian rộng rãi cho thẻ mục tiêu bên dưới
+        val cardTop = height * 0.075f // Đặt gọn gàng ở 7.5% mép trên
         val cardRight = cardLeft + cardWidth
         val cardBottom = cardTop + cardHeight
 
@@ -109,8 +110,8 @@ class EpaperRenderer {
         // VẼ PHẦN FOOTER (3 Cột)
         renderFooter(canvas, innerRect.left, footerTop, innerRect.right, innerRect.bottom, now)
 
-        // 3. VẼ THẺ MỤC TIÊU CÔNG VIỆC (NGÀY / THÁNG / NĂM) PHÍA DƯỚI
-        renderGoalCard(canvas, cardLeft, cardBottom + 20f, cardRight, now)
+        // 3. VẼ THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG PHÍA DƯỚI
+        renderGoalAndQuoteCard(canvas, cardLeft, cardBottom + 16f, cardRight, now)
     }
 
     private fun renderHeader(
@@ -281,7 +282,7 @@ class EpaperRenderer {
             minPaint
         )
 
-        // 3. CÂY KIM GIÂY (Mảnh khảnh + Đuôi đối trọng phong cách cổ điển)
+        // 3. Kim giây
         val secPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             strokeWidth = 2.2f
@@ -290,21 +291,18 @@ class EpaperRenderer {
         val secLen = radius * 0.85f
         val secTailLen = radius * 0.22f
 
-        // Thân kim giây
         canvas.drawLine(
             cx, cy,
             (cx + secLen * sin(secAngle)).toFloat(),
             (cy - secLen * cos(secAngle)).toFloat(),
             secPaint
         )
-        // Đuôi đối trọng kim giây
         canvas.drawLine(
             cx, cy,
             (cx - secTailLen * sin(secAngle)).toFloat(),
             (cy + secTailLen * cos(secAngle)).toFloat(),
             secPaint
         )
-        // Chấm tròn nhỏ ở đuôi kim giây
         val tailDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             style = Paint.Style.FILL
@@ -316,7 +314,6 @@ class EpaperRenderer {
             tailDotPaint
         )
 
-        // Chốt kim chính giữa trục tâm
         val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             style = Paint.Style.FILL
@@ -459,56 +456,75 @@ class EpaperRenderer {
     }
 
     /**
-     * VẼ THẺ MỤC TIÊU CÔNG VIỆC (PRODUCTIVITY CARD)
+     * VẼ THẺ MỤC TIÊU & CÂU NÓI TRUYỀN CẢM HỨNG (GOALS & QUOTES CARD)
      */
-    private fun renderGoalCard(canvas: Canvas, left: Float, top: Float, right: Float, cal: Calendar) {
+    private fun renderGoalAndQuoteCard(canvas: Canvas, left: Float, top: Float, right: Float, cal: Calendar) {
         val cardWidth = right - left
-        val cardHeight = cardWidth * 0.48f
+        val cardHeight = cardWidth * 0.60f
         val bottom = top + cardHeight
         val rect = RectF(left, top, right, bottom)
         val cornerRadius = 14f
 
-        // Nền giấy E-ink & viền
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cardPaint)
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, borderPaint)
 
-        // Viền chỉ đôi
         val pad = cardWidth * 0.018f
         val inner = RectF(left + pad, top + pad, right - pad, bottom - pad)
         canvas.drawRect(inner, linePaint)
 
-        // Tiêu đề thanh trên của thẻ mục tiêu: "MỤC TIÊU & NHIỆM VỤ"
-        val headerH = cardHeight * 0.20f
-        val headerB = inner.top + headerH
-        canvas.drawLine(inner.left, headerB, inner.right, headerB, linePaint)
+        // 1. KHU VỰC CÂU NÓI TRUYỀN CẢM HỨNG (CHIẾM 35% CHIỀU CAO THẺ)
+        val quoteH = cardHeight * 0.35f
+        val quoteBottom = inner.top + quoteH
+        canvas.drawLine(inner.left, quoteBottom, inner.right, quoteBottom, linePaint)
 
-        inkPaint.textAlign = Paint.Align.LEFT
-        inkPaint.textSize = headerH * 0.55f
-        canvas.drawText("🎯 MỤC TIÊU & KẾ HOẠCH", inner.left + 16f, inner.top + (headerH * 0.68f), inkPaint)
+        // Tiêu đề nhỏ "CHÂM NGÔN HÔM NAY"
+        val qTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = inkMutedColor
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            textSize = quoteH * 0.22f
+            textAlign = Paint.Align.CENTER
+        }
+        val centerX = (inner.left + inner.right) / 2f
+        canvas.drawText("❝ CHÂM NGÔN TRUYỀN CẢM HỨNG ❞", centerX, inner.top + (quoteH * 0.30f), qTitlePaint)
 
-        val year = cal.get(Calendar.YEAR)
-        textMuted.textAlign = Paint.Align.RIGHT
-        textMuted.textSize = headerH * 0.48f
-        canvas.drawText("Năm $year", inner.right - 16f, inner.top + (headerH * 0.68f), textMuted)
+        // Nội dung câu nói chữ nghiêng mềm mại
+        val quoteTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = inkColor
+            typeface = Typeface.create(Typeface.SERIF, Typeface.ITALIC)
+            textSize = quoteH * 0.32f
+            textAlign = Paint.Align.CENTER
+        }
+        val maxQuoteW = inner.width() - 32f
+        var displayQuote = "“ $dailyQuote ”"
+        if (quoteTextPaint.measureText(displayQuote) > maxQuoteW) {
+            displayQuote = android.text.TextUtils.ellipsize(
+                displayQuote,
+                TextPaint(quoteTextPaint),
+                maxQuoteW,
+                android.text.TextUtils.TruncateAt.END
+            ).toString()
+        }
+        canvas.drawText(displayQuote, centerX, inner.top + (quoteH * 0.72f), quoteTextPaint)
 
-        // 3 Dòng mục tiêu: Ngày, Tháng, Năm
-        val contentH = inner.bottom - headerB
+        // 2. KHU VỰC 3 MỤC TIÊU CÔNG VIỆC: NGÀY, THÁNG, NĂM
+        val contentH = inner.bottom - quoteBottom
         val rowH = contentH / 3f
 
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            textSize = rowH * 0.40f
+            textSize = rowH * 0.38f
             textAlign = Paint.Align.LEFT
         }
 
         val valPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = inkColor
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            textSize = rowH * 0.38f
+            textSize = rowH * 0.36f
             textAlign = Paint.Align.LEFT
         }
 
+        val year = cal.get(Calendar.YEAR)
         val rows = arrayOf(
             Triple("Hôm nay:", todayGoal, "☑"),
             Triple("Tháng này:", monthGoal, "★"),
@@ -516,12 +532,11 @@ class EpaperRenderer {
         )
 
         for (i in rows.indices) {
-            val rY = headerB + (i * rowH)
+            val rY = quoteBottom + (i * rowH)
             if (i > 0) {
-                // Kẻ đường gạch mờ ngăn các dòng
                 val dashPaint = Paint(linePaint).apply {
-                    pathEffect = DashPathEffect(floatArrayOf(6f, 6f), 0f)
-                    strokeWidth = 1.2f
+                    pathEffect = DashPathEffect(floatArrayOf(5f, 5f), 0f)
+                    strokeWidth = 1f
                 }
                 canvas.drawLine(inner.left + 10f, rY, inner.right - 10f, rY, dashPaint)
             }
@@ -531,24 +546,22 @@ class EpaperRenderer {
             val value = rows[i].second
             val baseline = rY + (rowH * 0.62f)
 
-            // Vẽ Icon + Label
-            labelPaint.textSize = rowH * 0.38f
+            labelPaint.textSize = rowH * 0.36f
             canvas.drawText("$icon $label", inner.left + 16f, baseline, labelPaint)
 
-            // Vẽ nội dung mục tiêu
             val labelW = labelPaint.measureText("$icon $label ")
             val maxValW = (inner.right - 16f) - (inner.left + 16f + labelW)
-            
-            // Cắt ngắn nếu quá dài
+
             var displayVal = value
             if (valPaint.measureText(displayVal) > maxValW) {
-                displayVal = valPaint.ellipsize(displayVal, TextPaint(valPaint), maxValW, android.text.TextUtils.TruncateAt.END).toString()
+                displayVal = android.text.TextUtils.ellipsize(
+                    displayVal,
+                    TextPaint(valPaint),
+                    maxValW,
+                    android.text.TextUtils.TruncateAt.END
+                ).toString()
             }
             canvas.drawText(displayVal, inner.left + 16f + labelW, baseline, valPaint)
         }
-    }
-
-    private fun TextPaint.ellipsize(text: String, p: TextPaint, avail: Float, where: android.text.TextUtils.TruncateAt): CharSequence {
-        return android.text.TextUtils.ellipsize(text, p, avail, where)
     }
 }
